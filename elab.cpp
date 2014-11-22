@@ -687,14 +687,16 @@ elab_record_type(Tuple_tree* t, Var* t0) {
 }
 
 // Elaborate a tuple expression. Note that there are many
-// forms that this tuple can represent. 
+// forms that this tuple can represent. These are:
 //
-// FIXME: What should we do about an empty tuple?
+//    - {} is the empty tuple. Note that this is always a term.
+//
+// FIXME: How do we parse the type of the empty tuple.
 Expr*
 elab_tuple(Tuple_tree* t) {
   if (t->elems()->empty()) {
-    error(t->loc) << format("empty tuple or record expression '{}'", pretty(t));
-    return nullptr;
+    Tuple_type* type = new Tuple_type(get_kind_type(), new Type_seq());
+    return new Tuple(t->loc, type, new Term_seq());
   }
 
   // Elaborate the first element of the tuple. It determines
@@ -758,6 +760,7 @@ elab_list(List_tree* t, Term* t0) {
 // Elaborate a list of expressions. The elaboration depends on the
 // form of the list. When the list has the form
 //
+//  - [], this is the empty list with type [*x]
 //  - [T] where T is a type, this is the list type [T].
 //  - [t1, ..., tn] where each ti is a term whose type is T, then
 //    this is the a list whose type is [T].
@@ -770,8 +773,11 @@ elab_list(List_tree* t, Term* t0) {
 Expr*
 elab_list(List_tree *t) {
   if (t->elems()->empty()) {
-    error(t->loc) << format("empty list expression '{}'", pretty(t));
-    return nullptr;
+    Name* n = fresh_name();
+    Type* wild = new Wild_type(get_kind_type(), n, get_kind_type());
+    Type* type = new List_type(get_kind_type(), wild);
+    Term* list = new List(type, new Term_seq());
+    return list;
   }
 
   Expr* expr = elab_expr(t->elems()->front());
