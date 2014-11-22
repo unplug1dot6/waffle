@@ -1,2 +1,2 @@
 
-(\x:Bool.x) true;
+(\x:Bool=>x) true;
