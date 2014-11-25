@@ -1,3 +1,5 @@
+#include <iostream>
+
 namespace lex {
 
 // -------------------------------------------------------------------------- //
@@ -35,6 +37,30 @@ is_file(L& lex) {
     while (iter != lex.last && *iter != ' ' && *iter != '\n'){
       if(!is_file_rest(*iter))
         return false;
+      if(*iter == '.') //File must contain at least one dot to define directory
+        containsDotToIndicateFile = true;
+      ++iter;
+    }
+    return containsDotToIndicateFile;
+  }
+  else 
+    return false;
+}
+
+//Returns true if consists of [a-zA-Z0-9_] and includes a dot '.'
+template<typename L>
+inline bool
+is_module(L& lex) {
+  if(is_id_head(*lex.first)) //File will start with valid id char (i.e., not a digit, parenthesis, etc...)
+  {
+    bool containsDotToIndicateFile = false;
+    auto iter = lex.first + 1;
+    while (iter != lex.last && *iter != ' ' && *iter != '\n'){
+      if(!is_file_rest(*iter))
+      {
+        std::cout << "Value of module is " << (containsDotToIndicateFile ? "Yes" : "No") << '\n';
+        return containsDotToIndicateFile;
+      }
       if(*iter == '.') //File must contain at least one dot to define directory
         containsDotToIndicateFile = true;
       ++iter;
@@ -167,6 +193,43 @@ template<typename L>
     String str(lex.first, iter);
     save(lex, file_tok, str);
     advance(lex, iter - lex.first);
+  }
+
+  template<typename L>
+  inline bool 
+  hasremainingdot(L& lex)
+  {
+    bool isanotherdot = false;
+    auto iter = lex.first + 1;
+    while (iter != lex.last and *iter != ' ' and *iter != '\n')
+    {
+      if(*iter == '.')
+        isanotherdot = true;
+      ++iter;
+    }
+    return isanotherdot;
+  }
+  
+  // Consume a module reference. module extension
+template<typename L>
+  inline void
+  module(L& lex) {
+    auto iter = lex.first + 1;
+    while (iter != lex.last and is_file_rest(*iter))
+      ++iter;
+
+    if(hasremainingdot(lex))
+    {
+      // Build the module.
+      String str(lex.first, iter);
+      save(lex, module_tok, str);
+      advance(lex, iter - lex.first);
+    }
+    else
+    {
+      String str(lex.first, iter);
+      save(lex, module_tok, str);
+    }
   }
 
 // Lex an integer.

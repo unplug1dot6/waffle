@@ -27,4 +27,5 @@ init_tokens() {
   init_token(identifier_tok, "identifier");
   init_token(decimal_literal_tok, "decimal");
   init_token(file_tok, "file"); //module extension
+  init_token(module_tok, "module"); //module extension
 }

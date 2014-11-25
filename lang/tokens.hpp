@@ -55,6 +55,7 @@ constexpr Token_type token_real_type = 4; // reals
 constexpr Token_type token_char_type = 5; // characters
 constexpr Token_type token_str_type  = 6; // strings
 constexpr Token_type token_file_type = 7; // file
+constexpr Token_type token_module_type = 8; // module
 
 namespace token {
 
@@ -138,6 +139,7 @@ constexpr Token_kind octal_literal_tok       = make_token(token_int_type, 3);
 constexpr Token_kind decimal_literal_tok     = make_token(token_int_type, 4);
 constexpr Token_kind hexadecimal_literal_tok = make_token(token_int_type, 5);
 constexpr Token_kind file_tok                = make_token(token_file_type, 6);
+constexpr Token_kind module_tok              = make_token(token_module_type, 7);
 constexpr Token_kind string_literal_tok      = make_token(token_str_type, 10);
 
 // -------------------------------------------------------------------------- //

@@ -63,6 +63,8 @@ lex_tokens(Lexer& lex) {
     // Maybe a file - module extension
     if (lex::is_file(lex))
       lex::file(lex);
+    else if (lex::is_module(lex))
+      lex::module(lex);
     else if (lex::is_id_head(*lex.first))
       lex::id(lex);
     else if (lex::is_digit(*lex.first))
