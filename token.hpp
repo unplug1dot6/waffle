@@ -40,6 +40,7 @@ constexpr Token_kind then_tok      = make_token(108);
 constexpr Token_kind true_tok      = make_token(109);
 constexpr Token_kind typeof_tok    = make_token(110);
 constexpr Token_kind unit_tok      = make_token(111);
+constexpr Token_kind import_tok	   = make_token(112); //module extension
 // Type names
 constexpr Token_kind bool_type_tok = make_token(200);
 constexpr Token_kind nat_type_tok  = make_token(201);

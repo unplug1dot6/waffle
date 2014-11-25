@@ -6,4 +6,4 @@ def and = \(x:Bool, y:Bool) => if x then if y then false else false else false;
 print and(true, true);
 
 //Correct module definition
-print test.module-1.waffle.and(true, true);
+print test.module-1.waffle => and(true, true);

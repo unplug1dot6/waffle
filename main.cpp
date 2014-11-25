@@ -10,6 +10,7 @@
 #include "eval.hpp"
 
 int main() {
+  bool showDebug = true;
   Language lang;
 
   // ------------------------------------------------------------------------ //
@@ -29,6 +30,16 @@ int main() {
     return -1;
   }
 
+  // --------------------------------------------------------------//
+  // Added for debugging lexed tokens
+  //
+  if(showDebug){
+    std::cout << "== debug ==\n";
+    for(int i=0; i<toks.size(); i++)
+    {
+      std::cout << token_name(toks[i].kind) << " (" << toks[i].text << ") " << '\n';
+    }
+  }
 
   // ------------------------------------------------------------------------ //
   // Syntactic analysis

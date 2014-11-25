@@ -18,11 +18,13 @@ init_tokens() {
   init_token(true_tok, "true");
   init_token(typeof_tok, "typeof");
   init_token(unit_tok, "unit");
+  init_token(import_tok, "import"); //module extension
   // Type names
   init_token(bool_type_tok, "Bool");
   init_token(nat_type_tok, "Nat");
   init_token(unit_type_tok, "Unit");
-  // Identifiers and literals
+  // Identifiers, literals, files
   init_token(identifier_tok, "identifier");
   init_token(decimal_literal_tok, "decimal");
+  init_token(file_tok, "file"); //module extension
 }

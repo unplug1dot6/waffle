@@ -10,9 +10,11 @@ namespace lex {
 
 // -------------------------------------------------------------------------- //
 // Characters
-
+template<typename L>
+	bool is_file(L& lex); //module extension
 bool is_id_head(char c);
 bool is_id_rest(char c);
+bool is_file_rest(char c); //module extension
 bool is_digit(char c);
 bool is_bin_digit(char c);
 bool is_hex_digit(char c);
@@ -39,6 +41,7 @@ template<typename L> void unigraph(L&, Token_kind);
 template<typename L> void digraph(L&, Token_kind);
 template<typename L> void error(L&);
 template<typename L> void id(L&);
+template<typename L> void file(L&); //module extension
 template<typename L> void integer(L&);
 template<typename L> void string(L&);
 

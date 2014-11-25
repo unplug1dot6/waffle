@@ -1,4 +1,3 @@
-
 namespace lex {
 
 // -------------------------------------------------------------------------- //
@@ -25,9 +24,34 @@ template<typename L>
 // -------------------------------------------------------------------------- //
 // Characters
 
+//Returns true if consists of [a-zA-Z0-9_] and includes a dot '.'
+template<typename L>
+inline bool
+is_file(L& lex) {
+  if(is_id_head(*lex.first)) //File will start with valid id char (i.e., not a digit, parenthesis, etc...)
+  {
+    bool containsDotToIndicateFile = false;
+    auto iter = lex.first + 1;
+    while (iter != lex.last && *iter != ' ' && *iter != '\n'){
+      if(!is_file_rest(*iter))
+        return false;
+      if(*iter == '.') //File must contain at least one dot to define directory
+        containsDotToIndicateFile = true;
+      ++iter;
+    }
+    return containsDotToIndicateFile;
+  }
+  else 
+    return false;
+}
+
 // Returns true if c is in [a-zA-Z_].
 inline bool
 is_id_head(char c) { return std::isalpha(c) || c == '_'; }
+
+// Returns true if c is in [a-zA-Z0-9_-.]
+inline bool
+is_file_rest(char c) { return std::isalpha(c) || std::isdigit(c) || c == '-' || c == '.'; } 
 
 // Returns true if c is in [a-zA-Z0-9_].
 inline bool
@@ -128,6 +152,20 @@ template<typename L>
       save(lex, k, str);
     else
       save(lex, identifier_tok, str);
+    advance(lex, iter - lex.first);
+  }
+
+  // Consume a file. module extension
+template<typename L>
+  inline void
+  file(L& lex) {
+    auto iter = lex.first + 1;
+    while (iter != lex.last and is_file_rest(*iter))
+      ++iter;
+
+    // Build the file.
+    String str(lex.first, iter);
+    save(lex, file_tok, str);
     advance(lex, iter - lex.first);
   }
 
