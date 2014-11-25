@@ -49,9 +49,9 @@ is_file(L& lex) {
 inline bool
 is_id_head(char c) { return std::isalpha(c) || c == '_'; }
 
-// Returns true if c is in [a-zA-Z0-9_-.]
+// Returns true if c is in [a-zA-Z0-9_.]
 inline bool
-is_file_rest(char c) { return std::isalpha(c) || std::isdigit(c) || c == '-' || c == '.'; } 
+is_file_rest(char c) { return std::isalpha(c) || std::isdigit(c) || c == '.'; } 
 
 // Returns true if c is in [a-zA-Z0-9_].
 inline bool
