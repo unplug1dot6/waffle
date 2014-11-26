@@ -1,5 +1,3 @@
-#include <iostream>
-
 namespace lex {
 
 // -------------------------------------------------------------------------- //
@@ -29,48 +27,20 @@ template<typename L>
 //Returns true if consists of [a-zA-Z0-9_] and includes a dot '.'
 template<typename L>
 inline bool
-is_file(L& lex) {
-  if(is_id_head(*lex.first)) //File will start with valid id char (i.e., not a digit, parenthesis, etc...)
-  {
-    bool containsDotToIndicateFile = false;
-    auto iter = lex.first + 1;
-    while (iter != lex.last && *iter != ' ' && *iter != '\n'){
-      if(!is_file_rest(*iter))
-        return false;
-      if(*iter == '.') //File must contain at least one dot to define directory
-        containsDotToIndicateFile = true;
-      ++iter;
-    }
-    return containsDotToIndicateFile;
-  }
-  else 
-    return false;
-}
-
-//Returns true if consists of [a-zA-Z0-9_] and includes a dot '.'
-template<typename L>
-inline bool
 is_module(L& lex) {
   if(is_id_head(*lex.first)) //File will start with valid id char (i.e., not a digit, parenthesis, etc...)
   {
-    bool containsDotToIndicateFile = false;
     auto iter = lex.first + 1;
-    while (iter != lex.last && *iter != ' ' && *iter != '\n'){
-      if(!is_file_rest(*iter))
-      {
-        std::cout << "Value of module is " << (containsDotToIndicateFile ? "Yes" : "No") << '\n';
-        return containsDotToIndicateFile;
-      }
+    while (iter != lex.last && is_file_rest(*iter)){
       if(*iter == '.') //File must contain at least one dot to define directory
-        containsDotToIndicateFile = true;
+        return true;
       ++iter;
     }
-    return containsDotToIndicateFile;
+    return false;
   }
   else 
     return false;
 }
-
 // Returns true if c is in [a-zA-Z_].
 inline bool
 is_id_head(char c) { return std::isalpha(c) || c == '_'; }
@@ -94,6 +64,9 @@ is_bin_digit(char c) { return c == '0' || c == '1'; }
 // Returns true if c is in [0-9a-fA-F]
 inline bool
 is_hex_digit(char c) { return std::isxdigit(c); }
+
+inline bool
+is_newline(char c) { return c == '\n'; }
 
 
 // -------------------------------------------------------------------------- //
@@ -181,55 +154,66 @@ template<typename L>
     advance(lex, iter - lex.first);
   }
 
-  // Consume a file. module extension
-template<typename L>
-  inline void
-  file(L& lex) {
-    auto iter = lex.first + 1;
-    while (iter != lex.last and is_file_rest(*iter))
+  template<typename L>
+  inline bool 
+  is_import_line(L& lex)
+  {
+    auto iter = lex.first;
+    while (iter != lex.last and !is_newline(*iter))
+    {
+      if(*iter == ';')
+        return false; //semi-colon indicates a standard code line
       ++iter;
-
-    // Build the file.
-    String str(lex.first, iter);
-    save(lex, file_tok, str);
-    advance(lex, iter - lex.first);
+    }
+    return true;
   }
 
   template<typename L>
-  inline bool 
-  hasremainingdot(L& lex)
+  inline int 
+  remaining_dots(L& lex)
   {
-    bool isanotherdot = false;
-    auto iter = lex.first + 1;
-    while (iter != lex.last and *iter != ' ' and *iter != '\n')
+    int cnt = 0;
+    auto iter = lex.first;
+    while (iter != lex.last and is_file_rest(*iter))
     {
       if(*iter == '.')
-        isanotherdot = true;
+        cnt++;
       ++iter;
     }
-    return isanotherdot;
+    return cnt;
   }
   
   // Consume a module reference. module extension
 template<typename L>
   inline void
   module(L& lex) {
-    auto iter = lex.first + 1;
-    while (iter != lex.last and is_file_rest(*iter))
-      ++iter;
+    auto iter = lex.first;
+    do{
+      if(*lex.first == '.')
+        advance(lex, 1); //Move past preceding dot
+      iter = lex.first;
+      while (iter != lex.last and is_file_rest(*iter) and *iter != '.') //stop scanning when a '.' is found which defines directory/file/method
+        ++iter;
 
-    if(hasremainingdot(lex))
-    {
-      // Build the module.
+      bool import_line = is_import_line(lex);
+      int dots = remaining_dots(lex);
       String str(lex.first, iter);
-      save(lex, module_tok, str);
-      advance(lex, iter - lex.first);
+        
+      //If import line, there will not be a method/const reference.
+      if((!import_line && dots > 1) || (import_line && dots == 1))
+      {
+        // Build the directory.
+        save(lex, directory_tok, str);
+        advance(lex, iter - lex.first);
+      }
+      else if((!import_line && dots == 1) || (import_line && dots == 0))
+      {
+        // Build the file
+        save(lex, file_tok, str);
+        advance(lex, iter - lex.first);
+      }
     }
-    else
-    {
-      String str(lex.first, iter);
-      save(lex, module_tok, str);
-    }
+    while(*iter == '.');
   }
 
 // Lex an integer.

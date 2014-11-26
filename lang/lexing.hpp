@@ -11,8 +11,6 @@ namespace lex {
 // -------------------------------------------------------------------------- //
 // Characters
 template<typename L>
-	bool is_file(L& lex); //module extension
-template<typename L>
 	bool is_module(L& lex); //module extension
 bool is_id_head(char c);
 bool is_id_rest(char c);

@@ -60,10 +60,8 @@ lex_tokens(Lexer& lex) {
 
   default:
     // Maybe this is an identifier, keyowrd, or number.
-    // Maybe a file - module extension
-    if (lex::is_file(lex))
-      lex::file(lex);
-    else if (lex::is_module(lex))
+    // Maybe a module - module extension
+   if (lex::is_module(lex))
       lex::module(lex);
     else if (lex::is_id_head(*lex.first))
       lex::id(lex);
