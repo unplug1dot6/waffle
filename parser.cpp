@@ -6,7 +6,6 @@
 #include "lang/debug.hpp"
 
 #include <iostream>
-
 // -------------------------------------------------------------------------- //
 // Parsers
 //
@@ -24,8 +23,6 @@ Tree* parse_primary_expr(Parser&);
 Tree* parse_postfix_expr(Parser&);
 Tree* parse_prefix_expr(Parser&);
 Tree* parse_expr(Parser&);
-Tree* parse_name(Parser&);
-
 
 // Parse a name.
 //
@@ -562,11 +559,43 @@ parse_def(Parser& p) {
   return nullptr;
 }
 
+// Parse an imported module
+Tree*
+parse_import(Parser& p) {
+  if (const Token* k = parse::accept(p, import_tok)) {
+    // build the absolute filepath for the module
+    std::string filepath("./");
+    std::stringstream stringbuf;
+    while (const Token* k = parse::accept(p, directory_tok))
+      stringbuf << k->text << "/";
+    if (const Token* k = parse::expect(p, file_tok))
+      stringbuf << k->text << ".waffle";
+
+    /*
+    if (Tree* n = parse_name(p)) {
+      if (parse::expect(p, equal_tok)) {
+        if (Tree* e = parse_expr(p))
+          return new Def_tree(k, n, e);
+        else
+          parse::parse_error(p) << "expected 'expr' after '='";
+      }
+    } else {
+      parse::parse_error(p) << "expected 'name' after 'def'";
+      }*/
+
+  filepath += stringbuf.str();
+  std::cout << filepath << "\n";
+  }
+  return nullptr;
+}
+
 // Parse a statement.
 //
 //    stmt ::= def-stmt | expr-stmt
 Tree*
 parse_stmt(Parser& p) {
+  if (Tree* t = parse_import(p))
+    return t;
   if (Tree* t = parse_def(p))
     return t;
   if (Tree* t = parse_expr(p))
