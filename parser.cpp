@@ -1,11 +1,13 @@
 
 #include "parser.hpp"
 #include "syntax.hpp"
+#include "lexer.hpp"
 
 #include "lang/parsing.hpp"
 #include "lang/debug.hpp"
 
 #include <iostream>
+#include <fstream>
 // -------------------------------------------------------------------------- //
 // Parsers
 //
@@ -584,7 +586,27 @@ parse_import(Parser& p) {
       }*/
 
   filepath += stringbuf.str();
-  std::cout << filepath << "\n";
+
+  // bring in the module's code 
+  std::ifstream filetext(filepath);
+  std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
+
+  // lex the module
+  Lexer lex;
+  Tokens toks = lex(modulecode);
+  if (not lex.diags.empty()) {
+    std::cerr << lex.diags;
+    parse::parse_error(p) << "could not lex module '" << filepath << "'\n";
+  }
+
+  // parse the module
+  Parser parse;
+  Tree* tree = parse(toks);
+  if (not parse.diags.empty()) {
+    std::cerr << parse.diags;
+    parse::parse_error(p) << "could not parse module '" << filepath << "'\n";
+  }
+
   }
   return nullptr;
 }
