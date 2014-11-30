@@ -194,6 +194,7 @@ parse_parm_clause(Parser& p) {
 //
 //    lambda-expr ::= '\' parm-decl ':' type '=>' term
 //                  | '\' parm-list '=>' term
+
 Tree*
 parse_lambda_expr(Parser& p) {
   if (const Token* k = parse::accept(p, backslash_tok)) {
@@ -251,6 +252,8 @@ parse_elem_list(Parser& p, Token_kind close_tok) {
     // Either break or continue.
     if (parse::next_token_is(p, close_tok))
       break;
+    if (parse::next_token_is(p, rbracket_tok))
+      break;
     parse::expect(p, comma_tok);
   }
   return ts;
@@ -258,10 +261,20 @@ parse_elem_list(Parser& p, Token_kind close_tok) {
 
 // Parse a comma-separated sequence of expressions that are by a 
 // enclosed by pair of tokens.
+//
+//    enclosed-seq(open, close) ::= open [elem-seq]?  close
+//
+// Here 'open' and 'close' are tokens represening the opening and
+// closing tokens of the enclosed sequence. Note that the sequence
+// may be empty.
 template<typename T>
   Tree*
-  parse_enclosed_expr(Parser& p, Token_kind open_tok, Token_kind close_tok) {
+  parse_enclosed_seq(Parser& p, Token_kind open_tok, Token_kind close_tok) {
     if (const Token* k = parse::accept(p, open_tok)) {
+
+      if (parse::accept (p, close_tok))
+        return new T(k, new Tree_seq());
+
       if (Tree_seq* ts = parse_elem_list(p, close_tok)) {
         if (parse::expect(p, close_tok))
           return new T(k, ts);
@@ -277,9 +290,14 @@ template<typename T>
 // Parse a tuple expression.
 //
 //    tuple-expr ::= '{' t1, ..., tn '}'
+//
+// TODO: There is currently no way to distinguish between the type of
+// the empty tuple and its value. There are at least two reasonable
+// solutions: allow the empty tuple to be used in place of a type, or
+// provide explicit syntax for differentiating the two.
 Tree*
 parse_tuple_expr(Parser& p) {
-  return parse_enclosed_expr<Tuple_tree>(p, lbrace_tok, rbrace_tok);
+  return parse_enclosed_seq<Tuple_tree>(p, lbrace_tok, rbrace_tok);
 }
 
 // Parse a list expression.
@@ -287,7 +305,7 @@ parse_tuple_expr(Parser& p) {
 //    list-expr ::= '[' t1, ..., tn ']'
 Tree*
 parse_list_expr(Parser& p) {
-  return parse_enclosed_expr<List_tree>(p, lbracket_tok, rbracket_tok);
+  return parse_enclosed_seq<List_tree>(p, lbracket_tok, rbracket_tok);
 }
 
 // Parse a variant expression.
@@ -295,7 +313,7 @@ parse_list_expr(Parser& p) {
 //    tuple-expr ::= '<' t1, ..., tn '>'
 Tree*
 parse_variant_expr(Parser& p) {
-  parse_enclosed_expr<Variant_tree>(p, langle_tok, rangle_tok);
+  parse_enclosed_seq<Variant_tree>(p, langle_tok, rangle_tok);
 }
 
 // Parse a grouped expression.
@@ -337,6 +355,27 @@ parse_grouped_expr(Parser& p) {
     }
   }
   return nullptr;
+}
+
+// Parse selection.
+//
+//    stmt ::= select col from table where bool
+Tree*
+parse_select_expr(Parser& p) {
+    if(const Token* s = parse::accept(p, select_tok)) {
+      if (Tree* t1 = parse_expr(p)) {
+        if(parse::expect(p, from_tok)) {
+          if (Tree* t2 = parse_expr(p)) {
+            if(parse::expect(p, where_tok)) {
+              if (Tree* t3 = parse_expr(p)) { 
+                return new Select_tree(s,t1,t2,t3);
+              }
+            }
+          }
+        }
+      }
+    }
+    return nullptr;
 }
 
 // Parse a primary expression.
@@ -384,6 +423,121 @@ parse_dot_expr(Parser& p, Tree* t1) {
   return nullptr;
 }
 
+// Parse an and expression
+//
+//    and-expr ::= expr and expr
+Tree*
+parse_and_expr(Parser& p, Tree* t1) {
+  if(parse::accept(p, and_tok)) {
+    if(Tree* t2 = parse_expr(p))
+      return new And_tree(t1, t2);
+    else
+      parse::parse_error(p) << "expected 'expr' after 'and'";
+  }
+  return nullptr;
+}
+
+// Parse an or expression
+//
+//    or-expr ::= expr or expr
+Tree*
+parse_or_expr(Parser& p, Tree* t1) {
+  if(parse::accept(p, or_tok)) {
+    if(Tree* t2 = parse_expr(p))
+      return new Or_tree(t1, t2);
+    else
+      parse::parse_error(p) << "expected 'expr' after 'or'";
+  }
+  return nullptr;
+}
+
+// Parse an eq-comp expression
+//
+//    eq-comp-expr ::= expr == expr
+Tree*
+parse_eq_comp_expr(Parser& p, Tree* t1) {
+  if(const Token* t = parse::accept(p, eq_comp_tok)) {
+    if(Tree* t2 = parse_expr(p))
+      return new Eq_comp_tree(t1, t2);
+    else
+      parse::parse_error(p) << "expected 'expr' after '=='";
+  }
+  return nullptr;
+}
+
+// Parse an less expression
+//
+//    less-expr ::= expr < expr
+Tree*
+parse_less_expr(Parser& p, Tree* t1) {
+  if(const Token* t = parse::accept(p, less_tok)) {
+    if(Tree* t2 = parse_expr(p))
+      return new Less_tree(t1, t2);
+    else
+      parse::parse_error(p) << "expected 'expr' after '<'";
+  }
+  return nullptr;
+}
+
+// Parse a union expression
+//
+//    union-expr ::= expr union expr
+Tree*
+parse_union(Parser& p, Tree* t1) {
+  if(parse::accept(p, union_tok)) {
+    if(Tree* t2 = parse_expr(p))
+      return new Union_tree(t1, t2);
+    else
+      parse::parse_error(p) << "expected 'expr' after 'union'";
+  }
+  return nullptr;
+}
+
+// Parse an intersect expression
+//
+//    intersect-expr ::= expr union expr
+Tree*
+parse_intersect(Parser& p, Tree* t1) {
+  if(parse::accept(p, intersect_tok)) {
+    if(Tree* t2 = parse_expr(p))
+      return new Intersect_tree(t1, t2);
+    else
+      parse::parse_error(p) << "expected 'expr' after 'intersect'";
+  }
+}
+
+// Parse an except expression
+//
+//    except-expr ::= expr except expr
+Tree*
+parse_except(Parser& p, Tree* t1) {
+  if(parse::accept(p, except_tok)) {
+    if(Tree* t2 = parse_expr(p))
+      return new Except_tree(t1, t2);
+    else
+      parse::parse_error(p) << "expected 'table_expr' after 'Join'";
+  }
+}
+
+// Parse Join.
+// stm t1 join t2
+Tree*
+parse_join(Parser& p, Tree* t1) {
+    if(const Token* s = parse::accept(p, join_tok)) {
+      if(Tree* t2 = parse_expr(p))
+        if(parse::expect(p, on_tok)) 
+          if(Tree* t3 = parse_expr(p))
+            return new Join_on_tree(s,t1,t2,t3);
+          else
+            parse::parse_error(p) << "expected 'expr' after 'on'";
+        else
+          parse::parse_error(p) << "expected 'expr' after 'join'"; 
+      else
+        parse::parse_error(p) << "expected 'expr' before 'join'"; 
+    }
+    return nullptr;
+}
+
 // Parse a postfix expr.
 //
 //    postfix-expr ::= applicaiton-expr
@@ -394,6 +548,22 @@ parse_postfix_expr(Parser& p) {
       if (Tree* t2 = parse_dot_expr(p, t1))
         t1 = t2;
       else if (Tree* t2 = parse_application_expr(p, t1)) 
+        t1 = t2;
+      else if (Tree* t2 = parse_and_expr(p, t1))
+        t1 = t2;
+      else if (Tree* t2 = parse_or_expr(p, t1))
+        t1 = t2;
+      else if (Tree* t2 = parse_eq_comp_expr(p, t1))
+        t1 = t2;
+      else if (Tree* t2 = parse_less_expr(p, t1))
+        t1 = t2;
+      else if (Tree* t2 = parse_union(p, t1))
+        t1 = t2;
+      else if (Tree* t2 = parse_intersect(p, t1))
+        t1 = t2;
+      else if (Tree* t2 = parse_except(p, t1))
+        t1 = t2;
+      else if (Tree* t2 = parse_join(p, t1))
         t1 = t2;
       else 
         break;
@@ -497,13 +667,48 @@ parse_typeof_expr(Parser& p) {
   return nullptr;
 }
 
+// Parse a not expression
+//
+//    not-expr ::= 'not' expr
+Tree*
+parse_not_expr(Parser& p) {
+  if (const Token* k = parse::accept(p, not_tok)) {
+    if (Tree* t = parse_expr(p))
+      return new Not_tree(k, t);
+    else
+      parse::parse_error(p) << "expected 'expr' after 'not'";
+  }
+  return nullptr;
+}
+
+// Parse the schema of a table 
+//
+//    schema-expr ::= [x1:T1,...,xn:Tn]
+Tree_seq*
+parse_schema_expr(Parser& p) {
+  if(parse::accept(p, lbracket_tok)) {
+    if(Tree_seq* schema = parse_elem_list(p, rbracket_tok)) {
+      if(parse::accept(p, rbracket_tok))
+        return schema;
+      else
+        parse::parse_error(p) << "Expected ']' after schema definition";
+    }
+  }
+  else
+    parse::parse_error(p) << "Expected '[' after 'table'";
+
+  return nullptr;
+}
+
 // Parse a prefix expr.
 //
 //    prefix-expr ::= if-expr | succ-epxr | pred-expr | iszero-expr
-//                  | print-expr | typeof-expr
+//                    | not-expr | print-expr | typeof-expr
 Tree*
 parse_prefix_expr(Parser& p) {
   if (Tree* t = parse_if_expr(p))
+    return t;
+  if (Tree* t = parse_select_expr(p))
     return t;
   if (Tree* t = parse_succ_expr(p))
     return t;
@@ -514,6 +719,8 @@ parse_prefix_expr(Parser& p) {
   if (Tree* t = parse_print_expr(p))
     return t;
   if (Tree* t = parse_typeof_expr(p))
+    return t;
+  if (Tree* t = parse_not_expr(p))
     return t;
   return parse_postfix_expr(p);
 }
@@ -541,26 +748,86 @@ parse_expr(Parser& p) {
   return parse_arrow_expr(p);
 }
 
+// Parse an intializer clause
+//    initializer-clause:= '=' expr
+Tree*
+parse_required_initializer_clause(Parser& p) {
+  if (parse::accept(p, equal_tok))
+   if (Tree* t = parse_expr(p))
+      return t;
+   else
+      parse::parse_error(p) << "expected 'expr' after '='";
+  return nullptr;
+}
+
+// Parse a return type. This specifies the result type of a 
+// function declarator.
+//
+//    return-type ::= '->' expr
+Tree*
+parse_return_type(Parser& p) {
+
+      if (parse::expect(p, arrow_tok))
+       if (Tree* t = parse_type_lit(p))
+          return t;
+      return nullptr;
+    
+}
+
+// Parse a function declarator.
+// fn-decl ::= n(p1, p2, ...) -> t
+Tree*
+parse_fn_decl(Parser& p, Tree* n) {
+  if (Tree_seq* ps = parse_parm_clause(p))    
+  //parsing parameter list as Lambda abstraction \(pi:Ti).e
+  if (Tree* t = parse_return_type(p))
+     return new Func_tree(n, ps, t);
+  return nullptr;
+}
+
 // Parse a definition expression.
 //
-//    def-expr ::= 'def' name '=' expr
+//    def_const-expr ::=  name '=' expr
 Tree*
-parse_def(Parser& p) {
-  if (const Token* k = parse::accept(p, def_tok)) {
-    if (Tree* n = parse_name(p)) {
-      if (parse::expect(p, equal_tok)) {
-        if (Tree* e = parse_expr(p))
-          return new Def_tree(k, n, e);
-        else
-          parse::parse_error(p) << "expected 'expr' after '='";
-      }
-    } else {
-      parse::parse_error(p) << "expected 'name' after 'def'";
-    }
+parse_const_decl(Parser& p,Tree *n,const Token *k) {
+  if (parse::accept(p, equal_tok)) {
+   if (Tree* e = parse_expr(p))
+      return new Def_tree(k, n, e);
+   else
+      parse::parse_error(p) << "expected 'expr' after '='";
   }
   return nullptr;
 }
 
+// Parse a def-decl.
+//
+//    def-decl ::= const-decl | fn-decl
+//
+Tree*
+parse_def_decl(Parser& p) {
+  if (const Token* k = parse::accept(p, def_tok)) 
+    if (Tree* n = parse_name(p)) {
+      // Parse the declarator.
+      Tree*d1=nullptr;
+      if (Tree* d2 = parse_const_decl(p, n,k))
+	d1=d2;
+      else if (Tree* d2 = parse_fn_decl(p, n))
+	d1=d2;
+      if (not d1) {
+        parse::parse_error(p) << "expected 'parameter-clause' after 'name'";
+        return nullptr;
+      }
+      // Parse the initializer.
+      if (Tree* e = parse_required_initializer_clause(p))
+        return new Def_tree(k, d1, e);
+      else 
+        return d1;
+  }
+  else 
+   return nullptr;
+}
+
+<<<<<<< HEAD
 // Parse an imported module
 Tree*
 parse_import(Parser& p) {
@@ -615,15 +882,21 @@ parse_import(Parser& p) {
   }
   return nullptr;
 }
+=======
+>>>>>>> upstream/master
 
 // Parse a statement.
 //
 //    stmt ::= def-stmt | expr-stmt
 Tree*
 parse_stmt(Parser& p) {
+<<<<<<< HEAD
   if (Tree* t = parse_import(p))
     return t;
   if (Tree* t = parse_def(p))
+=======
+  if (Tree* t = parse_def_decl(p))
+>>>>>>> upstream/master
     return t;
   if (Tree* t = parse_expr(p))
     return t;
@@ -666,3 +939,5 @@ Parser::operator()(Token_iterator f, Token_iterator l) {
   use_diagnostics(diags);
   return parse_program(*this);
 }
+
+

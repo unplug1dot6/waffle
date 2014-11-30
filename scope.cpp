@@ -4,6 +4,8 @@
 #include "lang/error.hpp"
 #include "lang/debug.hpp"
 
+#include <sstream>
+
 namespace {
 
 // The global current scope.
@@ -40,6 +42,11 @@ in_global_scope() { return current_scope()->kind == global_scope; }
 bool
 in_lambda_scope() { return current_scope()->kind == lambda_scope; }
 
+// Returns true if the system is currently in member scope.
+bool
+in_member_scope() { return current_scope()->kind == member_scope; }
+
+
 // Associate the term t with the name n in the current scope.
 Expr*
 declare(Name* n, Expr* e) {
@@ -74,4 +81,12 @@ lookup(Name* n) {
     s = s->parent;
   }
   return nullptr;
+}
+
+// Create a fresh name for this scope.
+Name*
+fresh_name() {
+  std::stringstream ss;
+  ss << 'a' << ++current_scope()->counter;
+  return new Id(ss.str());
 }
