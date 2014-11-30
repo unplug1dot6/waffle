@@ -827,7 +827,6 @@ parse_def_decl(Parser& p) {
    return nullptr;
 }
 
-<<<<<<< HEAD
 // Parse an imported module
 Tree*
 parse_import(Parser& p) {
@@ -882,21 +881,16 @@ parse_import(Parser& p) {
   }
   return nullptr;
 }
-=======
->>>>>>> upstream/master
 
 // Parse a statement.
 //
 //    stmt ::= def-stmt | expr-stmt
 Tree*
 parse_stmt(Parser& p) {
-<<<<<<< HEAD
   if (Tree* t = parse_import(p))
     return t;
-  if (Tree* t = parse_def(p))
-=======
+  //  if (Tree* t = parse_def(p))
   if (Tree* t = parse_def_decl(p))
->>>>>>> upstream/master
     return t;
   if (Tree* t = parse_expr(p))
     return t;
