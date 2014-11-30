@@ -564,48 +564,53 @@ parse_def(Parser& p) {
 // Parse an imported module
 Tree*
 parse_import(Parser& p) {
+
   if (const Token* k = parse::accept(p, import_tok)) {
     // build the absolute filepath for the module
     std::string filepath("./");
     std::stringstream stringbuf;
+
+    // find all the directories first then get the file
     while (const Token* k = parse::accept(p, directory_tok))
       stringbuf << k->text << "/";
     if (const Token* k = parse::expect(p, file_tok))
       stringbuf << k->text << ".waffle";
 
+    filepath += stringbuf.str();
+
+    // bring in the module's code 
+    std::ifstream filetext(filepath);
+    std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
+
+    // lex the module
+    Lexer lex;
+    Tokens toks = lex(modulecode);
+    if (not lex.diags.empty()) {
+      std::cerr << lex.diags;
+      parse::parse_error(p) << "could not lex module '" << filepath << "'\n";
+    }
+
+    // parse the module
+    Parser parse;
+    Tree* tree = parse(toks);
+    if (not parse.diags.empty()) {
+      std::cerr << parse.diags;
+      parse::parse_error(p) << "could not parse module '" << filepath << "'\n";
+    }
+
+    std:: cout << "==parsed " << filepath << "==\n" << pretty(tree) << '\n';
+    //    return tree;
     /*
-    if (Tree* n = parse_name(p)) {
+      if (Tree* n = parse_name(p)) {
       if (parse::expect(p, equal_tok)) {
-        if (Tree* e = parse_expr(p))
-          return new Def_tree(k, n, e);
-        else
-          parse::parse_error(p) << "expected 'expr' after '='";
+      if (Tree* e = parse_expr(p))
+      return new Def_tree(k, n, e);
+      else
+      parse::parse_error(p) << "expected 'expr' after '='";
       }
-    } else {
+      } else {
       parse::parse_error(p) << "expected 'name' after 'def'";
       }*/
-
-  filepath += stringbuf.str();
-
-  // bring in the module's code 
-  std::ifstream filetext(filepath);
-  std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
-
-  // lex the module
-  Lexer lex;
-  Tokens toks = lex(modulecode);
-  if (not lex.diags.empty()) {
-    std::cerr << lex.diags;
-    parse::parse_error(p) << "could not lex module '" << filepath << "'\n";
-  }
-
-  // parse the module
-  Parser parse;
-  Tree* tree = parse(toks);
-  if (not parse.diags.empty()) {
-    std::cerr << parse.diags;
-    parse::parse_error(p) << "could not parse module '" << filepath << "'\n";
-  }
 
   }
   return nullptr;
@@ -634,7 +639,6 @@ Tree*
 parse_program(Parser& p) {
   Tree_seq* stmts = new Tree_seq();
   while (not parse::end_of_stream(p)) {
-    // Parse the next statement...
     if (Tree* s = parse_stmt(p))
       stmts->push_back(s);
     else
