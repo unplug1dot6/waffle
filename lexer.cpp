@@ -61,9 +61,9 @@ lex_tokens(Lexer& lex) {
   default:
     // Maybe this is an identifier, keyowrd, or number.
     // Maybe a module - module extension
-   if (lex::is_module(lex))
-      lex::module(lex);
-    else if (lex::is_id_head(*lex.first))
+  // if (lex::is_module(lex))
+  //    lex::module(lex);
+     if (lex::is_id_head(*lex.first))
       lex::id(lex);
     else if (lex::is_digit(*lex.first))
       lex::integer(lex);

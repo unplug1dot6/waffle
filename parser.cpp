@@ -927,12 +927,11 @@ Tree*
 parse_program(Parser& p) {
   Tree_seq* stmts = new Tree_seq();
   while (not parse::end_of_stream(p)) {
+    std::cout << "TYPE IS: " << token_name(p.current->kind) << '\n';
     if (Tree* s = parse_stmt(p))
       stmts->push_back(s);
     else
       return nullptr;
-
-    //!Note: import line doesn't end with semicolon
 
       // ... and it's trailing ';'  
       if (not parse::expect(p, semicolon_tok))

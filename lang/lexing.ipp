@@ -20,10 +20,9 @@ template<typename L>
     lex.toks.emplace_back(lex.loc, k, str);
   }
 
-
 // -------------------------------------------------------------------------- //
 // Characters
-
+/*
 //Returns true if consists of [a-zA-Z0-9_] and includes a dot '.'
 template<typename L>
 inline bool
@@ -41,6 +40,7 @@ is_module(L& lex) {
   else 
     return false;
 }
+*/
 // Returns true if c is in [a-zA-Z_].
 inline bool
 is_id_head(char c) { return std::isalpha(c) || c == '_'; }
@@ -67,7 +67,6 @@ is_hex_digit(char c) { return std::isxdigit(c); }
 
 inline bool
 is_newline(char c) { return c == '\n'; }
-
 
 // -------------------------------------------------------------------------- //
 // Lexing rules

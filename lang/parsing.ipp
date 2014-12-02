@@ -49,6 +49,13 @@ template<typename P>
     return not next_token_is(p, t);
   }
 
+  // Returns true if the next token has type t.
+template<typename P>
+  inline bool
+  current_token_is(const P& p, Token_kind t) {
+      return p.current->kind == t;
+  }
+
 // Returns true if the last token had type t.
 template<typename P>
   inline bool

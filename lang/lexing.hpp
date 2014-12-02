@@ -41,8 +41,8 @@ template<typename L> void unigraph(L&, Token_kind);
 template<typename L> void digraph(L&, Token_kind);
 template<typename L> void error(L&);
 template<typename L> void id(L&);
-template<typename L> void file(L&); //module extension
-template<typename L> void module(L&); //module extension
+//template<typename L> void file(L&); //module extension
+//template<typename L> void module(L&); //module extension
 template<typename L> void integer(L&);
 template<typename L> void string(L&);
 
