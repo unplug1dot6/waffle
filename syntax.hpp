@@ -39,6 +39,7 @@ constexpr Node_kind not_tree     = make_tree_node(302); // t1 not t2
 constexpr Node_kind eq_comp_tree = make_tree_node(303); // t1 == t2
 constexpr Node_kind less_tree    = make_tree_node(304); // t1 < t2
 constexpr Node_kind prog_tree    = make_tree_node(500); // stmts
+constexpr Node_kind dir_tree     = make_tree_node(600); // dir1.dir2. ... .dir(n)  //module extension
 
 struct Tree : Node { using Node::Node; };
 
@@ -191,6 +192,16 @@ struct Def_tree : Tree {
 
   Tree* t1;
   Tree* t2;
+};
+
+// module extension
+struct Dir_tree : Tree {
+  Dir_tree(const Token* k)
+    : Tree(dir_tree, k->loc), t1(t1) { }
+
+  const Token* value() const { return t1; }
+
+  const Token* t1;
 };
 
 struct Print_tree : Tree {

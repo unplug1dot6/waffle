@@ -827,11 +827,43 @@ parse_def_decl(Parser& p) {
    return nullptr;
 }
 
-// Parse an imported module
+// Parse the directory of an import declaration
+//
+//  dir1. ...
+//
+
 Tree*
-parse_import(Parser& p) {
+parse_directory(Parser& p){
+  if (const Token* k = parse::accept(p, directory_tok))
+      return new Dir_tree(k);
+  else
+      parse::parse_error(p) << "expected another 'directory' after 'directory'";
+
+  return nullptr;
+}
+
+// Parse an imported module.
+//
+//  import dir1.dir2 ... .dir(n)
+//
+Tree*
+parse_import_decl(Parser& p) {
 
   if (const Token* k = parse::accept(p, import_tok)) {
+    Tree*d1=nullptr;
+std::cout << "here\n";
+    if(Tree* d2 = parse_directory(p))
+      d1=d2;
+
+    if(not d1){
+      parse::parse_error(p) << "expected 'directory' after import'";
+      return nullptr;
+    }
+
+    return d1;
+
+// GM 12/2/14 code to be used in elab or eval //
+/*
     // build the absolute filepath for the module
     std::string filepath("./");
     std::stringstream stringbuf;
@@ -866,29 +898,17 @@ parse_import(Parser& p) {
 
     std:: cout << "==parsed " << filepath << "==\n" << pretty(tree) << '\n';
     //    return tree;
-    /*
-      if (Tree* n = parse_name(p)) {
-      if (parse::expect(p, equal_tok)) {
-      if (Tree* e = parse_expr(p))
-      return new Def_tree(k, n, e);
-      else
-      parse::parse_error(p) << "expected 'expr' after '='";
-      }
-      } else {
-      parse::parse_error(p) << "expected 'name' after 'def'";
-      }*/
-
+*/
   }
   return nullptr;
 }
-
 
 // Parse a statement.
 //
 //    stmt ::= def-stmt | expr-stmt
 Tree*
 parse_stmt(Parser& p) {
-  if (Tree* t = parse_import(p))
+  if (Tree* t = parse_import_decl(p))
     return t;
   //if (Tree* t = parse_def(p))
   if (Tree* t = parse_def_decl(p))
@@ -912,9 +932,11 @@ parse_program(Parser& p) {
     else
       return nullptr;
 
-    // ... and it's trailing ';'
-    if (not parse::expect(p, semicolon_tok))
-      return nullptr;
+    //!Note: import line doesn't end with semicolon
+
+      // ... and it's trailing ';'  
+      if (not parse::expect(p, semicolon_tok))
+        return nullptr;
   }
   return new Prog_tree(stmts);
 }

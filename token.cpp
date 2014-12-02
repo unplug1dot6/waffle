@@ -18,9 +18,7 @@ init_tokens() {
   init_token(true_tok, "true");
   init_token(typeof_tok, "typeof");
   init_token(unit_tok, "unit");
-
   init_token(import_tok, "import"); //module extension
-
   init_token(and_tok, "and");
   init_token(or_tok, "or");
   init_token(not_tok, "not");

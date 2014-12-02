@@ -38,6 +38,7 @@ init_trees() {
   init_node(eq_comp_tree, "eq-comp-tree");
   init_node(less_tree, "less-tree");
   init_node(prog_tree, "prog-tree");
+  init_node(dir_tree, "dir-tree"); //module extension
 }
 
 // -------------------------------------------------------------------------- //

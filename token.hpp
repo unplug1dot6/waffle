@@ -27,6 +27,7 @@ constexpr Token_kind comma_tok     = make_token(",");
 constexpr Token_kind dquote_tok    = make_token('"');
 constexpr Token_kind arrow_tok     = make_token("->");
 constexpr Token_kind map_tok       = make_token("=>");
+
 // Keywords
 constexpr Token_kind def_tok       = make_token(100);
 constexpr Token_kind else_tok      = make_token(101);
@@ -40,9 +41,7 @@ constexpr Token_kind then_tok      = make_token(108);
 constexpr Token_kind true_tok      = make_token(109);
 constexpr Token_kind typeof_tok    = make_token(110);
 constexpr Token_kind unit_tok      = make_token(111);
-
 constexpr Token_kind import_tok	   = make_token(112); //module extension
-
 constexpr Token_kind and_tok       = make_token(113);
 constexpr Token_kind or_tok        = make_token(114);
 constexpr Token_kind not_tok       = make_token(115);
