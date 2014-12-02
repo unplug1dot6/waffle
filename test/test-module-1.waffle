@@ -1,4 +1,4 @@
-import test.module
+//import test.module
 
 //Incorrect local definition of and
 def and = \(x:Bool, y:Bool) => if x then if y then false else false else false; 
@@ -6,4 +6,4 @@ def and = \(x:Bool, y:Bool) => if x then if y then false else false else false;
 print and(true, true);
 
 //Correct module definition
-print test.module.and(true, true);
+//print test.module.and(true, true);

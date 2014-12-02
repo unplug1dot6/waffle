@@ -18,15 +18,15 @@ init_tokens() {
   init_token(true_tok, "true");
   init_token(typeof_tok, "typeof");
   init_token(unit_tok, "unit");
-<<<<<<< HEAD
+
   init_token(import_tok, "import"); //module extension
-=======
+
   init_token(and_tok, "and");
   init_token(or_tok, "or");
   init_token(not_tok, "not");
   init_token(eq_comp_tok, "eq");
   init_token(less_tok, "lt");
->>>>>>> upstream/master
+
   // Type names
   init_token(bool_type_tok, "Bool");
   init_token(nat_type_tok, "Nat");
@@ -34,10 +34,10 @@ init_tokens() {
   // Identifiers, literals, files
   init_token(identifier_tok, "identifier");
   init_token(decimal_literal_tok, "decimal");
-<<<<<<< HEAD
+
   init_token(file_tok, "file"); //module extension
   init_token(directory_tok, "directory"); //module extension
-=======
+
   // Relational algebra identifiers
   init_token(select_tok, "select");
   init_token(from_tok, "from");
@@ -47,5 +47,4 @@ init_tokens() {
   init_token(union_tok, "union");
   init_token(intersect_tok, "intersect");
   init_token(except_tok, "except");
->>>>>>> upstream/master
 }

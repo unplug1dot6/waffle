@@ -40,15 +40,15 @@ constexpr Token_kind then_tok      = make_token(108);
 constexpr Token_kind true_tok      = make_token(109);
 constexpr Token_kind typeof_tok    = make_token(110);
 constexpr Token_kind unit_tok      = make_token(111);
-<<<<<<< HEAD
+
 constexpr Token_kind import_tok	   = make_token(112); //module extension
-=======
+
 constexpr Token_kind and_tok       = make_token(113);
 constexpr Token_kind or_tok        = make_token(114);
 constexpr Token_kind not_tok       = make_token(115);
 constexpr Token_kind eq_comp_tok   = make_token(116); // eq
 constexpr Token_kind less_tok      = make_token(117); // lt
->>>>>>> upstream/master
+
 // Type names
 constexpr Token_kind bool_type_tok = make_token(200);
 constexpr Token_kind nat_type_tok  = make_token(201);
