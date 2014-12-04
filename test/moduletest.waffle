@@ -1,4 +1,4 @@
-import test.sample
+import test.sample;
 
 def id = \x:Bool => x; 
 
