@@ -54,8 +54,6 @@ constexpr Token_type token_int_type  = 3; // integers
 constexpr Token_type token_real_type = 4; // reals
 constexpr Token_type token_char_type = 5; // characters
 constexpr Token_type token_str_type  = 6; // strings
-constexpr Token_type token_file_type = 7; // file
-constexpr Token_type token_directory_type = 8; // directory
 
 namespace token {
 
@@ -132,14 +130,12 @@ make_token(Token_type t, std::uint32_t n) { return token::make_typed(t, n); }
 
 // Utility tokens
 constexpr Token_kind error_tok               = make_token(0u);
-// Identifiers, literals, and file
+// Identifiers and literals
 constexpr Token_kind identifier_tok          = make_token(token_id_type, 1);
 constexpr Token_kind binary_literal_tok      = make_token(token_int_type, 2);
 constexpr Token_kind octal_literal_tok       = make_token(token_int_type, 3);
 constexpr Token_kind decimal_literal_tok     = make_token(token_int_type, 4);
 constexpr Token_kind hexadecimal_literal_tok = make_token(token_int_type, 5);
-constexpr Token_kind file_tok                = make_token(token_file_type, 6);
-constexpr Token_kind directory_tok           = make_token(token_directory_type, 7);
 constexpr Token_kind string_literal_tok      = make_token(token_str_type, 10);
 
 // -------------------------------------------------------------------------- //

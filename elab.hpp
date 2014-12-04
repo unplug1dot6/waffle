@@ -1,6 +1,6 @@
 
 #ifndef ELAB_HPP
-#define EALB_HPP
+#define ELAB_HPP
 
 #include "lang/error.hpp"
 

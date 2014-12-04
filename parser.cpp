@@ -1,13 +1,11 @@
-
 #include "parser.hpp"
 #include "syntax.hpp"
-#include "lexer.hpp"
 
 #include "lang/parsing.hpp"
 #include "lang/debug.hpp"
 
 #include <iostream>
-#include <fstream>
+
 // -------------------------------------------------------------------------- //
 // Parsers
 //
@@ -25,6 +23,8 @@ Tree* parse_primary_expr(Parser&);
 Tree* parse_postfix_expr(Parser&);
 Tree* parse_prefix_expr(Parser&);
 Tree* parse_expr(Parser&);
+Tree* parse_name(Parser&);
+
 
 // Parse a name.
 //
@@ -827,80 +827,53 @@ parse_def_decl(Parser& p) {
    return nullptr;
 }
 
-// Parse the directory of an import declaration
+// Parse a name.
 //
-//  dir1. ...
-//
-
+//    name ::= identifier
 Tree*
-parse_directory(Parser& p){
-  if (const Token* k = parse::accept(p, directory_tok))
-      return new Dir_tree(k);
-  else
-      parse::parse_error(p) << "expected another 'directory' after 'directory'";
-
+parse_mod_name(Parser& p) {
+  if (const Token* k = parse::accept(p, identifier_tok))
+    return new Module_id_tree(k);
   return nullptr;
 }
 
-// Parse an imported module.
-//
-//  import dir1.dir2 ... .dir(n)
-//
+// Parse a module identifier
 Tree*
-parse_import_decl(Parser& p) {
+parse_mod_id_expr(Parser& p, Tree* t1) {
+  if (parse::accept(p, dot_tok))
+    if (Tree* t2 = parse_mod_name(p))
+      return new Module_dot_tree(t1, t2);
+    else
+      parse::parse_error(p) << "expected 'identifier' after '.'";
+  return nullptr;
+}
 
-  if (const Token* k = parse::accept(p, import_tok)) {
-    Tree*d1=nullptr;
-std::cout << "here\n";
-    if(Tree* d2 = parse_directory(p))
-      d1=d2;
-
-    if(not d1){
-      parse::parse_error(p) << "expected 'directory' after import'";
-      return nullptr;
+// Parse a module-expr
+Tree *
+parse_module_expr(Parser& p, const Token* k) {
+  if (Tree* t1 = parse_id_expr(p)) {
+    while (t1) {
+      if (Tree* t2 = parse_mod_id_expr(p, t1))
+        t1 = t2;
+      else 
+        break;
     }
-
-    return d1;
-
-// GM 12/2/14 code to be used in elab or eval //
-/*
-    // build the absolute filepath for the module
-    std::string filepath("./");
-    std::stringstream stringbuf;
-
-    // find all the directories first then get the file
-    while (const Token* k = parse::accept(p, directory_tok))
-      stringbuf << k->text << "/";
-    if (const Token* k = parse::expect(p, file_tok))
-      stringbuf << k->text << ".waffle";
-
-    filepath += stringbuf.str();
-
-    // bring in the module's code 
-    std::ifstream filetext(filepath);
-    std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
-
-    // lex the module
-    Lexer lex;
-    Tokens toks = lex(modulecode);
-    if (not lex.diags.empty()) {
-      std::cerr << lex.diags;
-      parse::parse_error(p) << "could not lex module '" << filepath << "'\n";
-    }
-
-    // parse the module
-    Parser parse;
-    Tree* tree = parse(toks);
-    if (not parse.diags.empty()) {
-      std::cerr << parse.diags;
-      parse::parse_error(p) << "could not parse module '" << filepath << "'\n";
-    }
-
-    std:: cout << "==parsed " << filepath << "==\n" << pretty(tree) << '\n';
-    //    return tree;
-*/
+    return new Module_tree(k, t1);
   }
   return nullptr;
+}
+
+// Parse an import
+Tree*
+parse_import(Parser& p) {
+  if (const Token* k = parse::accept(p, import_tok)) {
+    if (Tree* t = parse_module_expr(p, k))
+      return t;
+    else
+      parse::parse_error(p) << "expected 'identifier' after 'import'";
+  }
+  else 
+   return nullptr;
 }
 
 // Parse a statement.
@@ -908,9 +881,8 @@ std::cout << "here\n";
 //    stmt ::= def-stmt | expr-stmt
 Tree*
 parse_stmt(Parser& p) {
-  if (Tree* t = parse_import_decl(p))
+  if (Tree* t = parse_import(p))
     return t;
-  //if (Tree* t = parse_def(p))
   if (Tree* t = parse_def_decl(p))
     return t;
   if (Tree* t = parse_expr(p))
@@ -927,15 +899,15 @@ Tree*
 parse_program(Parser& p) {
   Tree_seq* stmts = new Tree_seq();
   while (not parse::end_of_stream(p)) {
-    std::cout << "TYPE IS: " << token_name(p.current->kind) << '\n';
+    // Parse the next statement...
     if (Tree* s = parse_stmt(p))
       stmts->push_back(s);
     else
       return nullptr;
 
-      // ... and it's trailing ';'  
-      if (not parse::expect(p, semicolon_tok))
-        return nullptr;
+    // ... and it's trailing ';'
+    if (not parse::expect(p, semicolon_tok))
+      return nullptr;
   }
   return new Prog_tree(stmts);
 }

@@ -6,10 +6,13 @@
 #include "scope.hpp"
 #include "type.hpp"
 #include "language.hpp"
+#include "lexer.hpp"
+#include "parser.hpp"
 
 #include "lang/debug.hpp"
 
 #include <iostream>
+#include <fstream>
 
 namespace {
 
@@ -1130,6 +1133,69 @@ elab_prog(Prog_tree* t) {
   return new Prog(type, stmts);
 }
 
+Mod_id*
+elab_module_id(Module_id_tree* t) {
+  const Token* tok = t->value();
+  return new Mod_id(tok->text);
+}
+
+Mod_id*
+elab_module_dot(Module_dot_tree* t) {
+  Module_id_tree* x = dynamic_cast<Module_id_tree*>(t->modId()); 
+  if (Mod_id* name = elab_module_id(x))
+    return name;
+  else
+    return nullptr;
+}
+
+  // return the module name from a module_tree
+std::string
+modulefilename(Module_tree* t) {
+  std::stringstream stringbuf;
+
+  Module_id_tree* x = dynamic_cast<Module_id_tree*>(t->idname());
+  if (x) {
+    if (Mod_id* id = elab_module_id(x)){
+	stringbuf << id->t1 << "/";}
+  } else {
+    Module_dot_tree* y = dynamic_cast<Module_dot_tree*>(t->idname());
+    if (y) {
+      if (Mod_id* next = elab_module_dot(y)) {
+      stringbuf << next->t1;// << "/";
+      }
+    }
+  }
+
+
+  stringbuf << ".waffle";
+  return stringbuf.str();
+}
+
+  // elaborate a module_tree
+Expr*
+elab_module(Module_tree* t) {
+  std::string filepath("./" + modulefilename(t));
+  
+  std::cout << "elab_module: " << filepath << '\n';
+  // read the module code
+  std::ifstream filetext(filepath);
+  std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
+
+  // lex the module
+  Lexer lex;
+  Tokens toks = lex(modulecode);
+  if (not lex.diags.empty())
+    std::cerr << lex.diags;
+
+  // parse the module
+  Parser parse;
+  Tree* module = parse(toks);
+  if (not parse.diags.empty())
+    std::cerr << parse.diags;
+
+  return elab_expr(module);
+}
+
 Expr* 
 elab_expr(Tree* t) {
   if (not t)
@@ -1167,6 +1233,9 @@ elab_expr(Tree* t) {
   case intersect_tree: return elab_intersect(as<Intersect_tree>(t));
   case except_tree: return elab_except(as<Except_tree>(t));
   case prog_tree: return elab_prog(as<Prog_tree>(t));
+  case module_tree: return elab_module(as<Module_tree>(t));
+    //  case module_dot_tree: return elab_module_dot(as<Module_dot_tree>(t));
+  case module_id_tree: return elab_module_id(as<Module_id_tree>(t));
   default: break;
   }
   lang_unreachable(format("elaborating unknown node '{}'", node_name(t)));

@@ -38,7 +38,7 @@ init_trees() {
   init_node(eq_comp_tree, "eq-comp-tree");
   init_node(less_tree, "less-tree");
   init_node(prog_tree, "prog-tree");
-  init_node(dir_tree, "dir-tree"); //module extension
+  init_node(module_tree, "module-tree");
 }
 
 // -------------------------------------------------------------------------- //
@@ -207,6 +207,27 @@ pp_prog(std::ostream& os, Prog_tree* t) {
     os << pretty(s) << ';' << '\n';
 }
 
+void
+pp_module(std::ostream& os, Module_tree* t) {
+  /*  std::string filepath("./");
+  std::stringstream stringbuf;
+  
+  Dot_tree* moduleid = dynamic_cast<Dot_tree*>(t->idname());
+  Id_tree* id = dynamic_cast<Id_tree*>(moduleid->object());
+  const Token* k = id->value();
+  stringbuf << k->text;
+
+  while (dynamic_cast<Dot_tree*>(moduleid->elem())) {
+    Dot_tree* next = dynamic_cast<Dot_tree*>(moduleid->elem());
+    Id_tree* i = dynamic_cast<Id_tree*>(next->object());
+    const Token* k2 = i->value();
+    stringbuf << k2->text << "/";
+  }
+
+  os << "import " << filepath + stringbuf.str() << ';' << '\n'; */
+  os << "import module" << ';' << '\n';
+}
+
 } // namespace
 
 // Render the given term into the output stream.
@@ -250,6 +271,7 @@ print(std::ostream& os, Tree* t) {
   case eq_comp_tree: return pp_eq_comp(os, as<Eq_comp_tree>(t));
   case less_tree: return pp_less(os, as<Less_tree>(t));
   case prog_tree: return pp_prog(os, as<Prog_tree>(t));
+  case module_tree: return pp_module(os, as<Module_tree>(t));
   }
   lang_unreachable(format("print unknown node '{}'", node_name(t)));
 }
