@@ -27,7 +27,6 @@ constexpr Token_kind comma_tok     = make_token(",");
 constexpr Token_kind dquote_tok    = make_token('"');
 constexpr Token_kind arrow_tok     = make_token("->");
 constexpr Token_kind map_tok       = make_token("=>");
-
 // Keywords
 constexpr Token_kind def_tok       = make_token(100);
 constexpr Token_kind else_tok      = make_token(101);
@@ -46,13 +45,11 @@ constexpr Token_kind or_tok        = make_token(114);
 constexpr Token_kind not_tok       = make_token(115);
 constexpr Token_kind eq_comp_tok   = make_token(116); // eq
 constexpr Token_kind less_tok      = make_token(117); // lt
-constexpr Token_kind import_tok    = make_token(118); // import
-
+constexpr Token_kind import_tok    = make_token(118);
 // Type names
 constexpr Token_kind bool_type_tok = make_token(200);
 constexpr Token_kind nat_type_tok  = make_token(201);
 constexpr Token_kind unit_type_tok = make_token(202);
-
 // Relational algebra keywords
 constexpr Token_kind select_tok    = make_token(301);
 constexpr Token_kind from_tok      = make_token(302);

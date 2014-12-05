@@ -209,23 +209,7 @@ pp_prog(std::ostream& os, Prog_tree* t) {
 
 void
 pp_module(std::ostream& os, Module_tree* t) {
-  /*  std::string filepath("./");
-  std::stringstream stringbuf;
-  
-  Dot_tree* moduleid = dynamic_cast<Dot_tree*>(t->idname());
-  Id_tree* id = dynamic_cast<Id_tree*>(moduleid->object());
-  const Token* k = id->value();
-  stringbuf << k->text;
-
-  while (dynamic_cast<Dot_tree*>(moduleid->elem())) {
-    Dot_tree* next = dynamic_cast<Dot_tree*>(moduleid->elem());
-    Id_tree* i = dynamic_cast<Id_tree*>(next->object());
-    const Token* k2 = i->value();
-    stringbuf << k2->text << "/";
-  }
-
-  os << "import " << filepath + stringbuf.str() << ';' << '\n'; */
-  os << "import module" << ';' << '\n';
+  os << "import <module>;\n";
 }
 
 } // namespace

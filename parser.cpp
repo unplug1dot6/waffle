@@ -1,3 +1,4 @@
+ 
 #include "parser.hpp"
 #include "syntax.hpp"
 
@@ -827,51 +828,16 @@ parse_def_decl(Parser& p) {
    return nullptr;
 }
 
-// Parse a name.
-//
-//    name ::= identifier
-Tree*
-parse_mod_name(Parser& p) {
-  if (const Token* k = parse::accept(p, identifier_tok))
-    return new Module_id_tree(k);
-  return nullptr;
-}
-
-// Parse a module identifier
-Tree*
-parse_mod_id_expr(Parser& p, Tree* t1) {
-  if (parse::accept(p, dot_tok))
-    if (Tree* t2 = parse_mod_name(p))
-      return new Module_dot_tree(t1, t2);
-    else
-      parse::parse_error(p) << "expected 'identifier' after '.'";
-  return nullptr;
-}
-
-// Parse a module-expr
-Tree *
-parse_module_expr(Parser& p, const Token* k) {
-  if (Tree* t1 = parse_id_expr(p)) {
-    while (t1) {
-      if (Tree* t2 = parse_mod_id_expr(p, t1))
-        t1 = t2;
-      else 
-        break;
-    }
-    return new Module_tree(k, t1);
-  }
-  return nullptr;
-}
 
 // Parse an import
+//
 Tree*
-parse_import(Parser& p) {
-  if (const Token* k = parse::accept(p, import_tok)) {
-    if (Tree* t = parse_module_expr(p, k))
-      return t;
-    else
+parse_import_decl(Parser& p) {
+  if (const Token* k = parse::accept(p, import_tok)) 
+    if (Tree* t = parse_expr(p))
+      return new Module_tree(k, t);
+    else 
       parse::parse_error(p) << "expected 'identifier' after 'import'";
-  }
   else 
    return nullptr;
 }
@@ -881,7 +847,7 @@ parse_import(Parser& p) {
 //    stmt ::= def-stmt | expr-stmt
 Tree*
 parse_stmt(Parser& p) {
-  if (Tree* t = parse_import(p))
+  if (Tree* t = parse_import_decl(p))
     return t;
   if (Tree* t = parse_def_decl(p))
     return t;

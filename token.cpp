@@ -23,19 +23,14 @@ init_tokens() {
   init_token(not_tok, "not");
   init_token(eq_comp_tok, "eq");
   init_token(less_tok, "lt");
-
-  // import
   init_token(import_tok, "import");
-
   // Type names
   init_token(bool_type_tok, "Bool");
   init_token(nat_type_tok, "Nat");
   init_token(unit_type_tok, "Unit");
-
   // Identifiers and literals
   init_token(identifier_tok, "identifier");
   init_token(decimal_literal_tok, "decimal");
-
   // Relational algebra identifiers
   init_token(select_tok, "select");
   init_token(from_tok, "from");

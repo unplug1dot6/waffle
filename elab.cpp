@@ -40,7 +40,7 @@ template<typename C, typename T>
 // -------------------------------------------------------------------------- //
 // Elaboration support
 
-// Create and id from an id-tree.
+// Create an id from an id-tree.
 Name*
 elab_name(Id_tree* t) {
   const Token* tok = t->value();
@@ -1133,54 +1133,56 @@ elab_prog(Prog_tree* t) {
   return new Prog(type, stmts);
 }
 
-Mod_id*
-elab_module_id(Module_id_tree* t) {
-  const Token* tok = t->value();
-  return new Mod_id(tok->text);
-}
-
-Mod_id*
-elab_module_dot(Module_dot_tree* t) {
-  Module_id_tree* x = dynamic_cast<Module_id_tree*>(t->modId()); 
-  if (Mod_id* name = elab_module_id(x))
-    return name;
-  else
-    return nullptr;
-}
-
-  // return the module name from a module_tree
 std::string
-modulefilename(Module_tree* t) {
-  std::stringstream stringbuf;
+elab_mod_dot(Dot_tree* t) {
+  std::stringstream ss;
 
-  Module_id_tree* x = dynamic_cast<Module_id_tree*>(t->idname());
-  if (x) {
-    if (Mod_id* id = elab_module_id(x)){
-	stringbuf << id->t1 << "/";}
-  } else {
-    Module_dot_tree* y = dynamic_cast<Module_dot_tree*>(t->idname());
-    if (y) {
-      if (Mod_id* next = elab_module_dot(y)) {
-      stringbuf << next->t1;// << "/";
-      }
+  Id* name = dynamic_cast<Id*>(elab_name(as<Id_tree>(t->object())));
+  ss << name->t1;
+  if (Tree* tree = t->elem()) {
+    switch (tree->kind) {
+    case id_tree: {
+      Id* id = dynamic_cast<Id*>(elab_name(as<Id_tree>(tree)));
+      ss << "/" << id->t1;
+      break;
+    }
+    case dot_tree:
+      ss << elab_mod_dot(as<Dot_tree>(tree));
+      break;
     }
   }
-
-
-  stringbuf << ".waffle";
-  return stringbuf.str();
+  return ss.str();
 }
 
-  // elaborate a module_tree
 Expr*
 elab_module(Module_tree* t) {
-  std::string filepath("./" + modulefilename(t));
-  
-  std::cout << "elab_module: " << filepath << '\n';
-  // read the module code
-  std::ifstream filetext(filepath);
-  std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
+  std::stringstream filepath;
+  filepath << "./";
+  // TODO: push scope on the first identifier? something like that....
 
+  Tree* atree = t->module();
+  switch (atree->kind) {
+  case dot_tree: {
+    filepath << elab_mod_dot(as<Dot_tree>(atree));
+    break;
+  }
+  case id_tree: {
+    Id* id = dynamic_cast<Id*>(elab_name(as<Id_tree>(atree)));
+    filepath << id->t1;
+    break;
+  }
+  default:
+    return nullptr;
+  }
+
+  // append .waffle extension
+  filepath << ".waffle";
+
+  // read module text
+  std::string f = filepath.str();
+  std::ifstream filetext(f);
+  std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
+  
   // lex the module
   Lexer lex;
   Tokens toks = lex(modulecode);
@@ -1234,8 +1236,6 @@ elab_expr(Tree* t) {
   case except_tree: return elab_except(as<Except_tree>(t));
   case prog_tree: return elab_prog(as<Prog_tree>(t));
   case module_tree: return elab_module(as<Module_tree>(t));
-    //  case module_dot_tree: return elab_module_dot(as<Module_dot_tree>(t));
-  case module_id_tree: return elab_module_id(as<Module_id_tree>(t));
   default: break;
   }
   lang_unreachable(format("elaborating unknown node '{}'", node_name(t)));

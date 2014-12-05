@@ -62,8 +62,6 @@ constexpr Node_kind union_term   = make_term_node(63); // t1 union t2
 constexpr Node_kind intersect_term = make_term_node(64); // t1 intersect t2
 constexpr Node_kind except_term  = make_term_node(65); // t1 except t2
 constexpr Node_kind col_term     = make_term_node(66); // table.n (col proj)
-// Module terms
-constexpr Node_kind mod_id_term  = make_term_node(67);
 // Miscellaneous terms
 constexpr Node_kind ref_term     = make_term_node(100); // ref to decl
 constexpr Node_kind print_term   = make_term_node(101); // print t
@@ -135,15 +133,6 @@ struct Id : Name {
     : Name(id_expr, nullptr), t1(n) { }
   Id(const Location& l, String n)
     : Name(id_expr, l, nullptr), t1(n) { }
-
-  String t1;
-};
-
-// -------------------------------------------------------------------------- //
-// Id specific to modules
-struct Mod_id : Name {
-  Mod_id(String n)
-    : Name(mod_id_term, nullptr), t1(n) { }
 
   String t1;
 };

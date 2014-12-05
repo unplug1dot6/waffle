@@ -1,3 +1,4 @@
+
 #ifndef SYNTAX_HPP
 #define SYNTAX_HPP
 
@@ -30,9 +31,7 @@ constexpr Node_kind join_on_tree = make_tree_node(162); // t1 join t2 on t3
 constexpr Node_kind union_tree   = make_tree_node(163); // t1 union t2
 constexpr Node_kind intersect_tree = make_tree_node(164); // t1 intersect t2
 constexpr Node_kind except_tree  = make_tree_node(165); // t1 except t2
-constexpr Node_kind module_tree  = make_tree_node(166); // import x.y.z
-constexpr Node_kind module_id_tree  = make_tree_node(167); // import x.y.z
-constexpr Node_kind module_dot_tree  = make_tree_node(168); // import x.y.z
+constexpr Node_kind module_tree  = make_tree_node(166); // stmts
 constexpr Node_kind print_tree   = make_tree_node(200); // print t
 constexpr Node_kind typeof_tree  = make_tree_node(201); // typeof t
 constexpr Node_kind and_tree     = make_tree_node(300); // t1 and t2
@@ -213,40 +212,6 @@ struct Typeof_tree : Tree {
   Tree* t1;
 };
 
-// module
-// t1 should be of the form 'file' or with directories preceding
-// like 'dir.dir.dir.file'
-struct Module_tree : Tree {
-  Module_tree(const Token *k, Tree *t)
-    : Tree(module_tree, k->loc), t1(t) { }
-
-  Tree* idname() const { return t1; }
-
-  Tree* t1;
-};
-
-// Module dot tree
-struct Module_dot_tree : Tree {
-  Module_dot_tree(Tree* t1, Tree* t2)
-    : Tree(module_dot_tree, t1->loc), t1(t1), t2(t2) { }
-
-  Tree* modId() const { return t1; }
-  Tree* rest() const { return t2; }
-
-  Tree* t1;
-  Tree* t2;
-};
-
-// module id tree
-struct Module_id_tree : Tree {
-  Module_id_tree(const Token* k)
-    : Tree(module_id_tree, k->loc), t1(k) { }
-
-  const Token* value() const { return t1; }
-  
-  const Token* t1;
-};
-
 // A tuple of the form '{t1, ..., tn}' where each ti is one of
 // a term, a variable of the form 'x:T', or an initializer of 
 // the form 'x=t'. This is used to represent both tuples and 
@@ -406,6 +371,17 @@ struct Less_tree : Tree {
 
   Tree* t1;
   Tree* t2;
+};
+
+// Module
+// t1 should be of the form 'file' or with directories preceding
+// like 'dir.dir.dir.file'
+struct Module_tree : Tree {
+  Module_tree(const Token* k, Tree* t)
+    : Tree(module_tree, k->loc), t1(t) {}
+
+  Tree* module() const { return t1; }
+  Tree* t1;
 };
 
 // -------------------------------------------------------------------------- //
