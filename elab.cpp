@@ -1122,7 +1122,13 @@ elab_prog(Prog_tree* t) {
   Term_seq* stmts = new Term_seq();
   for (Tree* s : *t->stmts()) {
     if (Term* term = elab_term(s)) {
-      stmts->push_back(term);
+      // if it's a program we are gonna push each term
+      if (Prog* prog = as<Prog>(term)) {
+	for (Term* progterm : *prog->stmts())
+	  stmts->push_back(progterm);
+      } 
+      else
+	stmts->push_back(term);
     }
     else
       return nullptr;
@@ -1133,6 +1139,7 @@ elab_prog(Prog_tree* t) {
   return new Prog(type, stmts);
 }
 
+// returns the file name as a string
 std::string
 elab_mod_dot(Dot_tree* t) {
   std::stringstream ss;
@@ -1156,6 +1163,8 @@ elab_mod_dot(Dot_tree* t) {
 
 Expr*
 elab_module(Module_tree* t) {
+  Scope_guard scope(module_scope);
+
   std::stringstream filepath;
   filepath << "./";
   // TODO: push scope on the first identifier? something like that....
@@ -1194,8 +1203,11 @@ elab_module(Module_tree* t) {
   Tree* module = parse(toks);
   if (not parse.diags.empty())
     std::cerr << parse.diags;
+  std::cout << "== parsed module(" << filepath.str() << ") ==\n" << pretty(module) << '\n';
 
-  return elab_expr(module);
+  Expr* test = elab_expr(module);
+  std::cout << "== elaborated module(" << filepath.str() << ") ==\n" << pretty(test) << '\n';
+  return test;
 }
 
 Expr* 
