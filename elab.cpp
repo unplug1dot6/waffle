@@ -1139,7 +1139,10 @@ elab_prog(Prog_tree* t) {
   Term_seq* stmts = new Term_seq();
   for (Tree* s : *t->stmts()) {
     if (Term* term = elab_term(s, stmts)) {
-      stmts->push_back(term);
+      if (as<Prog>(term))
+	continue;
+      else
+	stmts->push_back(term);
     }
     else
       return nullptr;
@@ -1212,12 +1215,14 @@ elab_module(Module_tree* t, Term_seq* stmts) {
   Tree* module = parse(toks);
   if (not parse.diags.empty())
     std::cerr << parse.diags;
-  std::cout << "== parsed module(" << filepath.str() << ") ==\n" << pretty(module) << '\n';
 
   //Add elaboration to current scope stmts
   for (Tree* s : *(as<Prog_tree>(module))->stmts()) {
     if (Term* term = elab_term(s, stmts)) {
-      stmts->push_back(term);
+      if (as<Prog>(term))
+	continue;
+      else
+	stmts->push_back(term);
     }
   }
 
