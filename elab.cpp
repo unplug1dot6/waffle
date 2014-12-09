@@ -1150,6 +1150,7 @@ elab_prog(Prog_tree* t) {
   return new Prog(type, stmts);
 }
 
+// returns the file name as a string
 std::string
 elab_mod_dot(Dot_tree* t) {
   std::stringstream ss;
@@ -1211,6 +1212,7 @@ elab_module(Module_tree* t, Term_seq* stmts) {
   Tree* module = parse(toks);
   if (not parse.diags.empty())
     std::cerr << parse.diags;
+  std::cout << "== parsed module(" << filepath.str() << ") ==\n" << pretty(module) << '\n';
 
   //Add elaboration to current scope stmts
   for (Tree* s : *(as<Prog_tree>(module))->stmts()) {
