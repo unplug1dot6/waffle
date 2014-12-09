@@ -13,7 +13,7 @@
 #include "type.hpp"
 
 int main() {
-  bool showDebug = true;
+  bool showDebug = false;
   Language lang;
 
   // ------------------------------------------------------------------------ //

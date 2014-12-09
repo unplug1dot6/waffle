@@ -1,25 +1,25 @@
 
 
-def and = \x:Bool => \y:Bool => if x then if y then true else false else false;
-def or = \x:Bool => \y:Bool => if x then true else if y then true else false;
+def AND = \x:Bool => \y:Bool => if x then if y then true else false else false;
+def OR = \x:Bool => \y:Bool => if x then true else if y then true else false;
 
-print and;
+print AND;
 
-print and true true;
-print and true false;
-print and false true;
-print and false false;
+print AND true true;
+print AND true false;
+print AND false true;
+print AND false false;
 
-def and_true = and true;
-def and_false = and true;
+def and_true = AND true;
+def and_false = AND true;
 print and_true;
 print and_false;
 
 print unit;
 
-print or;
-print or true true;
-print or true false;
-print or false true;
-print or false false;
+print OR;
+print OR true true;
+print OR true false;
+print OR false true;
+print OR false false;
 

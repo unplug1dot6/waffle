@@ -51,11 +51,13 @@ in_member_scope() { return current_scope()->kind == member_scope; }
 Expr*
 declare(Name* n, Expr* e) {
   Scope* s = current_scope();
+
   if (s->count(n) != 0) {
     error(e->loc) << format("name '{}' already bound in this scope", pretty(n));
     return nullptr;
   }
   s->insert({n, e});
+
   return e;
 }
 
@@ -75,6 +77,16 @@ Expr*
 lookup(Name* n) {
   Scope* s = current_scope();
   while (s) {
+    /*
+    //Debugging
+    typedef std::map<Name*, Expr*, Expr_less>::iterator it_type;
+    for(it_type iterator = s->begin(); iterator != s->end(); iterator++) {
+      std::cout << "FIRST " << pretty(iterator->first) << ' ';
+      std::cout << "SECOND " << pretty(iterator->second) << '\n';
+    // Repeat if you also want to iterate through the second map.
+    }
+    */
+
     auto iter = s->find(n);
     if (iter != s->end())
       return iter->second;

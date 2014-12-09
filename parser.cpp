@@ -547,7 +547,7 @@ parse_postfix_expr(Parser& p) {
   if (Tree* t1 = parse_primary_expr(p)) {
     while (t1) {
       if (Tree* t2 = parse_dot_expr(p, t1))
-        t1 = t2;
+      	 t1 = t2;
       else if (Tree* t2 = parse_application_expr(p, t1)) 
         t1 = t2;
       else if (Tree* t2 = parse_and_expr(p, t1))
@@ -848,7 +848,7 @@ parse_import_decl(Parser& p) {
 Tree*
 parse_stmt(Parser& p) {
   if (Tree* t = parse_import_decl(p))
-    return t;
+  	return t;
   if (Tree* t = parse_def_decl(p))
     return t;
   if (Tree* t = parse_expr(p))
@@ -866,7 +866,8 @@ parse_program(Parser& p) {
   Tree_seq* stmts = new Tree_seq();
   while (not parse::end_of_stream(p)) {
     // Parse the next statement...
-    if (Tree* s = parse_stmt(p))
+    Tree* s = nullptr;
+    if (s = parse_stmt(p))
       stmts->push_back(s);
     else
       return nullptr;
@@ -877,7 +878,6 @@ parse_program(Parser& p) {
   }
   return new Prog_tree(stmts);
 }
-
 
 // -------------------------------------------------------------------------- //
 // Parser

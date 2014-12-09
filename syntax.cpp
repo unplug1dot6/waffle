@@ -209,6 +209,7 @@ pp_prog(std::ostream& os, Prog_tree* t) {
 
 void
 pp_module(std::ostream& os, Module_tree* t) {
+  //os << pretty(t->module());
   os << "import <module>;\n";
 }
 

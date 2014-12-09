@@ -17,6 +17,7 @@
 namespace {
 
 // Declarations
+Expr* elab_expr(Tree*, Term_seq*);
 Expr* elab_expr(Tree*);
 
 
@@ -75,10 +76,10 @@ elab_type(Tree* t) {
   return nullptr;
 }
 
-// Elaborate a parse tree as a term.
+// Elaborate a parse tree passing in tree sequence in case module needs to add to it
 Term*
-elab_term(Tree* t) {
-  Expr* e = elab_expr(t);
+elab_term(Tree* t, Term_seq* stmts) {
+  Expr* e = elab_expr(t, stmts);
   if (not e)
     return nullptr;
   if (Term* term = as<Term>(e))
@@ -88,6 +89,21 @@ elab_term(Tree* t) {
   return nullptr;
 }
 
+// Elaborate a parse tree as a term.
+Term*
+elab_term(Tree* t) {
+  return elab_term(t, nullptr);
+  /*
+  Expr* e = elab_expr(t);
+  if (not e)
+    return nullptr;
+  if (Term* term = as<Term>(e))
+    return term;
+  else
+    error(t->loc) << format("expression '{}' is not a term", pretty(t));
+  return nullptr;
+  */
+}
 
 // -------------------------------------------------------------------------- //
 // Elaboration rules
@@ -107,6 +123,7 @@ elab_id(Id_tree* t) {
     return new Ref(t->loc, decl);
   else
     error(t->loc) << format("no matching declaration for '{}'", pretty(name));
+  
   return nullptr; 
 }
 
@@ -1121,7 +1138,7 @@ elab_prog(Prog_tree* t) {
   // Elaborate each statement in turn.
   Term_seq* stmts = new Term_seq();
   for (Tree* s : *t->stmts()) {
-    if (Term* term = elab_term(s)) {
+    if (Term* term = elab_term(s, stmts)) {
       stmts->push_back(term);
     }
     else
@@ -1155,24 +1172,24 @@ elab_mod_dot(Dot_tree* t) {
 }
 
 Expr*
-elab_module(Module_tree* t) {
+elab_module(Module_tree* t, Term_seq* stmts) {
   std::stringstream filepath;
   filepath << "./";
   // TODO: push scope on the first identifier? something like that....
 
   Tree* atree = t->module();
   switch (atree->kind) {
-  case dot_tree: {
-    filepath << elab_mod_dot(as<Dot_tree>(atree));
-    break;
-  }
-  case id_tree: {
-    Id* id = dynamic_cast<Id*>(elab_name(as<Id_tree>(atree)));
-    filepath << id->t1;
-    break;
-  }
-  default:
-    return nullptr;
+    case dot_tree: {
+      filepath << elab_mod_dot(as<Dot_tree>(atree));
+      break;
+    }
+    case id_tree: {
+      Id* id = dynamic_cast<Id*>(elab_name(as<Id_tree>(atree)));
+      filepath << id->t1;
+      break;
+    }
+    default:
+      return nullptr;
   }
 
   // append .waffle extension
@@ -1195,11 +1212,18 @@ elab_module(Module_tree* t) {
   if (not parse.diags.empty())
     std::cerr << parse.diags;
 
+  //Add elaboration to current scope stmts
+  for (Tree* s : *(as<Prog_tree>(module))->stmts()) {
+    if (Term* term = elab_term(s, stmts)) {
+      stmts->push_back(term);
+    }
+  }
+
   return elab_expr(module);
 }
 
 Expr* 
-elab_expr(Tree* t) {
+elab_expr(Tree* t, Term_seq* stmts) {
   if (not t)
     return nullptr;
 
@@ -1235,14 +1259,18 @@ elab_expr(Tree* t) {
   case intersect_tree: return elab_intersect(as<Intersect_tree>(t));
   case except_tree: return elab_except(as<Except_tree>(t));
   case prog_tree: return elab_prog(as<Prog_tree>(t));
-  case module_tree: return elab_module(as<Module_tree>(t));
+  case module_tree: return elab_module(as<Module_tree>(t), stmts);
   default: break;
   }
   lang_unreachable(format("elaborating unknown node '{}'", node_name(t)));
 }
 
-} // namespace
 
+Expr* 
+elab_expr(Tree* t) {
+  return elab_expr(t, nullptr);
+}
+} // namespace
 
 Expr*
 Elaborator::operator()(Tree* t) {
