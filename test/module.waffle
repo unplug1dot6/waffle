@@ -1,0 +1,8 @@
+//This module can be included and used in other waffle files.
+import test.sample;
+
+def AND = \x:Bool => \y:Bool => if x then if y then true else false else false;
+def OR = \x:Bool => \y:Bool => if x then true else if y then true else false;
+def NOT = \x:Bool => if x then false else true;
+
+def TEST_CASCADING_MOD = \x:Bool => if x then false else od true;

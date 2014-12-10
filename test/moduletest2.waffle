@@ -1,0 +1,12 @@
+import test.modules.module;
+
+//Incorrect local definition of and
+def bad_and = \x:Bool => \y:Bool => if x then if y then false else false else false;
+
+print bad_and true true;
+
+//Correct module definition
+print AND true true;
+
+//This call to the module uses a cascading module call to calculate the result.
+print TEST_CASCADING_MOD false;
