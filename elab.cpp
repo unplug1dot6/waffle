@@ -1158,21 +1158,25 @@ std::string
 elab_mod_dot(Dot_tree* t) {
   std::stringstream ss;
 
-  Id* name = dynamic_cast<Id*>(elab_name(as<Id_tree>(t->object())));
-  ss << name->t1;
-  if (Tree* tree = t->elem()) {
-    switch (tree->kind) {
-    case id_tree: {
-      Id* id = dynamic_cast<Id*>(elab_name(as<Id_tree>(tree)));
-      ss << "/" << id->t1;
-      break;
-    }
-    case dot_tree:
-      ss << elab_mod_dot(as<Dot_tree>(tree));
-      break;
-    }
+  while(as<Dot_tree>(t->object())){
+    std::stringstream tmp;
+    Id* name = dynamic_cast<Id*>(elab_name(as<Id_tree>(t->elem()))); 
+    tmp << "/" << name->t1 << ss.str();
+    ss.str(std::string());
+    ss.clear();
+    ss << tmp.str();
+
+    t = as<Dot_tree>(t->object());
   }
-  return ss.str();
+  
+  std::stringstream tmp1;
+  std::stringstream fname;
+  Id* dir = dynamic_cast<Id*>(elab_name(as<Id_tree>(t->elem()))); 
+  tmp1 << dir->t1;
+  Id* dir2 = dynamic_cast<Id*>(elab_name(as<Id_tree>(t->object()))); 
+  fname << dir2->t1 << "/" << tmp1.str() << ss.str();
+  
+  return fname.str();
 }
 
 Expr*
@@ -1182,19 +1186,7 @@ elab_module(Module_tree* t, Term_seq* stmts) {
   // TODO: push scope on the first identifier? something like that....
 
   Tree* atree = t->module();
-  switch (atree->kind) {
-    case dot_tree: {
-      filepath << elab_mod_dot(as<Dot_tree>(atree));
-      break;
-    }
-    case id_tree: {
-      Id* id = dynamic_cast<Id*>(elab_name(as<Id_tree>(atree)));
-      filepath << id->t1;
-      break;
-    }
-    default:
-      return nullptr;
-  }
+  filepath << elab_mod_dot(as<Dot_tree>(atree));
 
   // append .waffle extension
   filepath << ".waffle";
