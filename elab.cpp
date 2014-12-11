@@ -1203,7 +1203,6 @@ elab_module(Module_tree* t, Term_seq* stmts) {
   std::ifstream filetext(f);
   std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
 
-std::cout << "module code is: " << modulecode << '\n';
   // lex the module
   Lexer lex;
   Tokens toks = lex(modulecode);
