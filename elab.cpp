@@ -1157,9 +1157,9 @@ elab_prog(Prog_tree* t) {
 std::string
 elab_mod_dot(Dot_tree* t) {
   std::stringstream ss;
-
-  while(as<Dot_tree>(t->object())){
+  while(as<Dot_tree>(t) and as<Dot_tree>(t->object())){
     std::stringstream tmp;
+
     Id* name = dynamic_cast<Id*>(elab_name(as<Id_tree>(t->elem()))); 
     tmp << "/" << name->t1 << ss.str();
     ss.str(std::string());
@@ -1168,9 +1168,9 @@ elab_mod_dot(Dot_tree* t) {
 
     t = as<Dot_tree>(t->object());
   }
-  
   std::stringstream tmp1;
   std::stringstream fname;
+
   Id* dir = dynamic_cast<Id*>(elab_name(as<Id_tree>(t->elem()))); 
   tmp1 << dir->t1;
   Id* dir2 = dynamic_cast<Id*>(elab_name(as<Id_tree>(t->object()))); 
@@ -1186,8 +1186,15 @@ elab_module(Module_tree* t, Term_seq* stmts) {
   // TODO: push scope on the first identifier? something like that....
 
   Tree* atree = t->module();
-  filepath << elab_mod_dot(as<Dot_tree>(atree));
-
+  if(as<Id_tree>(atree)){
+    Id* file = dynamic_cast<Id*>(elab_name(as<Id_tree>(atree))); 
+    filepath << file->t1;
+  }
+  else if(as<Dot_tree>(atree))
+    filepath << elab_mod_dot(as<Dot_tree>(atree));
+  else
+    lang_unreachable(format("elaborating unknown module '{}'", node_name(atree)));
+  
   // append .waffle extension
   filepath << ".waffle";
 
@@ -1195,7 +1202,8 @@ elab_module(Module_tree* t, Term_seq* stmts) {
   std::string f = filepath.str();
   std::ifstream filetext(f);
   std::string modulecode((std::istreambuf_iterator<char>(filetext)), std::istreambuf_iterator<char>());
-  
+
+std::cout << "module code is: " << modulecode << '\n';
   // lex the module
   Lexer lex;
   Tokens toks = lex(modulecode);
