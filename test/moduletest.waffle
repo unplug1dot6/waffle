@@ -1,0 +1,7 @@
+import test.sample
+
+def id = \x:Bool => x; 
+
+print id true;
+//print od true;
+
